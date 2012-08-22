@@ -17,19 +17,14 @@
 #include "lcd.h"
 #include "delay.h"
 
-#define LCD_E   1<<PD7;
-#define LCD_RS  1<<PB1;
-
 // lcd_set_type_data()
 void lcd_set_type_data() {
-  //PORTD |= (1<<PD7);
-  PORTB |= LCD_RS;
+  PORTD |= (1<<PD7);
 }
 
 // lcd_set_type_command()
 void lcd_set_type_command() {
-  //PORTD &= ~(1<<PD7);
-  PORTB |= ~(LCD_RS);
+  PORTD &= ~(1<<PD7);
 }
 
 // lcd_write_nibble(...)
@@ -38,18 +33,14 @@ void lcd_write_nibble(char c) {
   // NOTE: only 2 or 3 work in the delays here.
 
   // set data
-  //PORTD &= ~(0x0f << 2);
-  PORTD &= ~(0x0f << 3);
-  //PORTD |= (c&0x0f) << 2;
-  PORTD |= (c&0x0f) << 3;
+  PORTD &= ~(0x0f << 2);
+  PORTD |= (c&0x0f) << 2;
 
   // E high
-  //PORTD |= (1<<PD6);
-  PORTD |= LCD_E;
+  PORTD |= (1<<PD6);
   delay_us(1);
   // E low
-  //PORTD &= ~(1<<PD6);
-  PORTD &= ~(LCD_E);
+  PORTD &= ~(1<<PD6);
   delay_us(1);
   
 }
@@ -165,10 +156,8 @@ void lcd_line_four()  { lcd_goto_position(3, 0); }
 // lcd_init()
 void lcd_init() {
   // set pin driver directions
-  // (output on PD7,PD6, and PD2-6)
-  //DDRD |= 0xfc;
-// shift output pins
-DDRD |= (0xfc << 1);
+  // (output on PD7,PD6, and PD3-6)
+  DDRD |= 0xfc;
 
   // wait 100msec
   delay_ms(100);
