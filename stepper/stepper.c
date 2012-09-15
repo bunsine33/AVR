@@ -23,8 +23,8 @@ int main()
     lcd_home();
   
     // init motor
-    MotorContext_t tMotorContextA;
-    vMOTOR_Start(&tMotorContextA, MOTOR_HALFSTEP);
+    MotorContext tMotorContextA;
+    motor_start(&tMotorContextA, MOTOR_HALFSTEP);
 
     // debug message
     lcd_line_one();
@@ -35,10 +35,10 @@ int main()
     // drive motor
     while(1)
     {
-	    vMOTOR_Step(&tMotorContextA, MOTOR_CW, 75);
+	    motor_step(&tMotorContextA, MOTOR_CW, 4);
     }
 
-    //vMOTOR_Stop(&tMotorContextA);
+    //motor_stop(&tMotorContextA);
   
     return 0;
 }

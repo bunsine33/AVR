@@ -9,6 +9,7 @@
   @Modifications: 
 
      12/01/09  -Created
+     08/22/12  -Renamed methods
  
 ************************************************************************/
 
@@ -27,12 +28,12 @@ typedef struct
 	uint8_t  stepMode;
 	int8_t   stepCount;
 
-} MotorContext_t;
+} MotorContext;
 
-void vMOTOR_Start (MotorContext_t *tMotorContext, uint8_t mode);
+void motor_start (MotorContext *tMotorContext, uint8_t mode);
 
-void vMOTOR_Stop (MotorContext_t *tMotorContext);
+void motor_stop (MotorContext *tMotorContext);
 
-void vMOTOR_Step (MotorContext_t *tMotorContext, uint8_t direction, uint16_t delay);
+void motor_step (MotorContext *tMotorContext, uint8_t direction, uint16_t delay);
 
 #endif
