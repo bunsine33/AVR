@@ -14,7 +14,10 @@
 #include <avr/pgmspace.h>
 
 #include "../libnerdkits/lcd.h"
+#include "../libnerdkits/delay.h"
+
 #include "motor.h"
+#include "bus.h"
 
 int main()
 {
@@ -28,17 +31,29 @@ int main()
 
     // debug message
     lcd_line_one();
-    lcd_write_string(PSTR("MODE:"));
+    lcd_write_string(PSTR("DEV3"));
     lcd_line_two();
     lcd_write_string(PSTR("HALFSTEP"));
-               
-    // drive motor
+  
+    int i;
+ 
+    init_bus();
+    select_bus(DEV3);
+  
     while(1)
     {
-	    motor_step(&tMotorContextA, MOTOR_CW, 4);
+          
+       // drive DEV3
+       for(i=0;i<500;i++)
+       {
+          motor_step(&tMotorContextA, MOTOR_CW, 1);
+       }
+    
+       delay_ms(500);
     }
-
+ 
     //motor_stop(&tMotorContextA);
-  
+     
     return 0;
 }
+

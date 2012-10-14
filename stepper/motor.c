@@ -11,9 +11,13 @@
                    A1 = Black, A2 = Green, B1 = Red, B2 = Blue 
 
                 LSG35012E98P 300:1 (HURST) Wire Diagram (12v, .375amp, 32 Ohm/phase)  
-                   A1= White, A2 = Black, B1 = Blue, B2 = Red
+                   A1 = White, A2 = Black, B1 = Blue, B2 = Red
 
-                103H5208-0842 Nema17 (SANYO DENKI) Wire Diagram (12v, 1.2amp, 1.6 Ohm/phase) 
+                103H5208-0842 (Discontinued) Nema17 (SANYO DENKI) Wire Diagram (12v, 1.2amp, 1.6 Ohm/phase)
+                  Mono colored wire, left to right: VCC,A1,A2,B1,B2,VCC
+
+                103H5208-10U41 Nema17 (SANYO DENKI) Wire Diagram (12v, 1.2amp, 5.3 Ohm/phase)
+                  A1 = Orange, A2 = Blue, B1 = Yellow, B2 = Red
                 
                 Excitation Patterns:
 
@@ -44,6 +48,7 @@
      12/09/09  -Created
      09/22/10  -Added 42BYGHM206-07E Wire Diagram
      08/22/12  -Renamed methods
+     09/28/12  -Added 103H5208-0842 & 103H5208-10U41 Wire Diagrams
  
 ************************************************************************/
 
@@ -64,10 +69,10 @@ void _motor_excite_pair (uint8_t windingA, uint8_t windingB, uint16_t delay);
 #define DDR   DDRC
 #define PORT  PORTC
 
-#define A1  1<<PC1
-#define A2  1<<PC2
-#define B1  1<<PC3
-#define B2  1<<PC4
+#define A1  1<<PC2
+#define A2  1<<PC3
+#define B1  1<<PC4
+#define B2  1<<PC5
 
 void motor_start (MotorContext *tMotorContext, uint8_t mode)
 {	

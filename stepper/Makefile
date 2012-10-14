@@ -9,9 +9,12 @@ AVRDUDEFLAGS=-c avr109 -p m168 -b 115200 -P /dev/cu.PL2303-0000101D
 
 LIBS=../libnerdkits/delay.o ../libnerdkits/lcd.o
 
-OBJS=motor.o
+OBJS=motor.o bus.o
 
 all:	stepper 
+
+bus.o:	bus.c
+	$(CC) ${CFLAGS} -c bus.c -o bus.o
 
 motor.o:	motor.c
 	$(CC) ${CFLAGS} -c motor.c -o motor.o
