@@ -52,7 +52,7 @@ typedef struct {
 
 #undef DEFINE_TEMP_SENSOR
 /// help build list of sensors from entries in config.h
-#define DEFINE_TEMP_SENSOR(name, type, pin, additional) { (type), (pin), (HEATER_ ## name), (additional) },
+#define DEFINE_TEMP_SENSOR(name, type, pin, additional) { (type), (pin ## _ADC), (HEATER_ ## name), (additional) },
 static const temp_sensor_definition_t temp_sensors[NUM_TEMP_SENSORS] =
 {
 	#include	"config.h"
@@ -178,7 +178,7 @@ void temp_sensor_tick() {
 					do {
 						uint8_t j, table_num;
 						//Read current temperature
-						temp = analog_read(temp_sensors[i].temp_pin);
+						temp = analog_read(i);
 						// for thermistors the thermistor table number is in the additional field
 						table_num = temp_sensors[i].additional;
 
@@ -237,7 +237,7 @@ void temp_sensor_tick() {
 
 				#ifdef	TEMP_AD595
 				case TT_AD595:
-					temp = analog_read(temp_sensors[i].temp_pin);
+					temp = analog_read(i);
 
 					// convert
 					// >>8 instead of >>10 because internal temp is stored as 14.2 fixed point
@@ -306,7 +306,7 @@ void temp_sensor_tick() {
 }
 
 /// report whether all temp sensors are reading their target temperatures
-/// used for M109 and friends
+/// used for M116 and friends
 uint8_t	temp_achieved() {
 	temp_sensor_t i;
 	uint8_t all_ok = 255;

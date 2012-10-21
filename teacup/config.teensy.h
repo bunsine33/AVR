@@ -1,9 +1,8 @@
 /* Notice to developers: this file is intentionally included twice. */
+/* attempt by drf@vims.edu 2012-01-09 to fit TeaCup into a $16 teensy from htpp://www.pjrc.com/teensy/ */
 
 /** \file
-	\brief Sample Configuration
-
-	\note this sample uses AIO0 for both X_STEP and thermistor, and is intended to be an example only!
+	\brief Teensy configuration.
 */
 
 /*
@@ -30,20 +29,15 @@
 
 	If you want to port this to a new chip, start off with arduino.h and see how you go.
 */
-#ifndef __AVR_ATmega644__
-  #ifndef __AVR_ATmega644P__
-    #ifndef __AVR_ATmega1284P__
-      #error GEN7 has an ATmega 644, 644P or 1284P. Set your CPU type in the \
-             Makefile or select your board in the Arduino IDE!
-    #endif
-  #endif
+#if ! defined (__AVR_ATmega32U4__)
+	#error Teensy has a 32U4! set your cpu type in Makefile!
 #endif
 
 /** \def F_CPU
 	CPU clock rate
 */
 #ifndef	F_CPU
-	#define	F_CPU	20000000UL
+	#define	F_CPU	16000000UL
 #endif
 
 /** \def HOST
@@ -68,13 +62,53 @@
 	valid range = 20 to 4'0960'000 (0.02 to 40960 steps/mm)
 
 	all numbers are integers, so no decimal point, please :-)
+
+T5=5mm, T2.5=2.5mm, MXL=0.08=2.032mm XL=1/5"=5.08mm
+
+T2.5mm belt w small, 10 (of 10-15 tooth pulley:
+MXL 2.032 mm/tooth, 29
+          (steps/rev) / (tooth/rev) / (mm/tooth)  * (mm/m)
+ X       200*4      / 29          / 2.032         * 1000  = 13575.89
+ Y       200*4      / 29          / 2.032         * 1000  = 13575.89
+ Z       200*2       / 1           / 1           * 1000  = 400000  # half-step for noise
+ Extrude through a Wades' 10:43 with a M8 hobbed bolt:
+         steps/revM  * revM/revO    / (dia * circ/rev) *  mm/m
+ E       200*1*16    *43/10         / (8  *   3.14159)  * 1000 = 547493.5
+         mm/m        / (mm/rev ext)   (rev mot/rev ext)  step/revmot
+ E       1000      / (8 * 3.14159)  * 43/10             * 200 * 16 = 547494
+
+w/o microstepping
+
+X,Y: 3393
+Z: 200000
+E: 34218
+
+Steps/sec at max feeds:
+c(9900,9900,1400,1900)/60*c(13576,13576,400000,547494)/1000 == 2240.040  2240.040  9333.333 17337.310
+
+Resolution in mm per step:
+1/c(13576,13576,400000,547494)*1000 == 0.073659399 0.073659399 0.002500000 0.001826504
+
 */
-#define	STEPS_PER_M_X					40000
-#define	STEPS_PER_M_Y					40000
-#define	STEPS_PER_M_Z					320000
+#define MICROSTEPPING 1
+
+#ifdef MICROSTEPPING
+#define	STEPS_PER_M_X				        13576
+#define	STEPS_PER_M_Y					13576
+#define	STEPS_PER_M_Z				        400000
 
 /// http://blog.arcol.hu/?p=157 may help with this one
-#define	STEPS_PER_M_E					96271
+#define	STEPS_PER_M_E					547494
+
+#else
+#define	STEPS_PER_M_X				        3393
+#define	STEPS_PER_M_Y					3393
+#define	STEPS_PER_M_Z				        200000
+
+/// http://blog.arcol.hu/?p=157 may help with this one
+#define	STEPS_PER_M_E					34218
+
+#endif
 
 
 /*
@@ -84,11 +118,23 @@
 		Units are mm/min
 */
 
+/* R code for calculating mac feed rates:
+
+stepsPerSec <- 16e6 / 1028     /2
+distsPerM <- c(13576,13576,400000,547494)
+maxFeedPerMin <- stepsPerSec / distsPerM * 1000 *60
+ */
+
+// 16MHz / 1028 cyc/step = 15570 step/sec
+// 1666 / 547.494 step/mmE *60  = 182 mm/min E
+// 1666 /c(13576,13576,400000,547494)*1000*60
+// my build at 4x X,Y, 2xZ 16xE 2012-02-26
+
 /// used for G0 rapid moves and as a cap for all other feedrates
-#define	MAXIMUM_FEEDRATE_X			2000
-#define	MAXIMUM_FEEDRATE_Y			2000
-#define	MAXIMUM_FEEDRATE_Z			200
-#define	MAXIMUM_FEEDRATE_E			2000
+#define	MAXIMUM_FEEDRATE_X		6881
+#define	MAXIMUM_FEEDRATE_Y		6881
+#define	MAXIMUM_FEEDRATE_Z		233
+#define	MAXIMUM_FEEDRATE_E		170
 
 /// used when searching endstops and as default feedrate
 #define	SEARCH_FEEDRATE_X			50
@@ -103,7 +149,7 @@
 // #define	SLOW_HOMING
 
 /// this is how many steps to suck back the filament by when we stop. set to zero to disable
-#define	E_STARTSTOP_STEPS			289
+#define	E_STARTSTOP_STEPS			20
 
 /**
 	Soft axis limits, in mm.
@@ -182,6 +228,31 @@
 	Machine Pin Definitions
 	- make sure to avoid duplicate usage of a pin
 	- comment out pins not in use, as this drops the corresponding code and makes operations faster
+
+Teensy http://www.pjrc.com/teensy ATMega64U4 carrier:
+
+New plan:
+                                         USB
+                               GND |-----#####-----| +5V
+              X0end              0 |b0   #####   F0| 21 A0               Extruder TC
+              Y0end              1 |b1           f1| 20 A1               Bed TC
+              Z0end              2 |b2  /=e6     f4| 19 A2               Stepper -ENable
+           Z_ENABLE              3 |b3 *      *  f5| 18 A3               STEP X
+           Bed Heat        PWM   4 |b7  aref=/   f6| 17 A4               DIR X
+      Extruder Heat        PWM   5 |d0           f7| 16 A5               STEP Y
+                                 6 |d1           b6| 15 A6  PWM          DIR Y
+                                 7 |d2   V G R   b5| 14 A7  PWM          STEP Z
+                                 8 |d3 d c n S d b4| 13 A8               DIR Z
+                           PWM   9 |d6 5 c d T 4 d7| 12 A9  PWM          STEP E
+                           PWM  10 |d7 * * * * * d6| 11 A10 (led)        DIR E
+                                   --------------------
+                                    23 ^     \ \22 A11
+                                              \- RST
+
+      Interior E6: 22 A11
+      Interior Aref : Aref
+      End d5 : 23
+      End d4 : 22
 */
 
 #include	"arduino.h"
@@ -198,9 +269,18 @@
 	or adjust your electronics to suit this
 */
 
-#define	X_STEP_PIN						DIO19
-#define	X_DIR_PIN							DIO18
-#define	X_MIN_PIN							DIO7
+/* teensy arduino assignments are 0-23 for digital, overlapping with A11-0 down from A11=D22, A0=D21...A10=D11 */
+
+/* starting down the left side for digital, and later down the right for analog */
+/* General layout: ccw from upper left: stops, heaters,  E,Z,Y,X,  temp sensors */
+
+//#define	PS_ON_PIN							DIO0
+#define	STEPPER_ENABLE_PIN		DIO19
+//#define	STEPPER_INVERT_ENABLE
+
+#define	X_STEP_PIN						DIO18
+#define	X_DIR_PIN							DIO17
+#define	X_MIN_PIN							DIO0
 //#define	X_MAX_PIN							xxxx
 //#define	X_ENABLE_PIN					xxxx
 //#define	X_INVERT_DIR
@@ -208,9 +288,9 @@
 //#define	X_INVERT_MAX
 //#define	X_INVERT_ENABLE
 
-#define	Y_STEP_PIN						DIO23
-#define	Y_DIR_PIN							DIO22
-#define	Y_MIN_PIN							DIO5
+#define	Y_STEP_PIN						DIO16
+#define	Y_DIR_PIN							DIO15
+#define	Y_MIN_PIN							DIO1
 //#define	Y_MAX_PIN							xxxx
 //#define	Y_ENABLE_PIN					xxxx
 //#define	Y_INVERT_DIR
@@ -218,26 +298,26 @@
 //#define	Y_INVERT_MAX
 //#define	Y_INVERT_ENABLE
 
-#define	Z_STEP_PIN						DIO26
-#define	Z_DIR_PIN							DIO25
-#define	Z_MIN_PIN							DIO1
+#define	Z_STEP_PIN						DIO14
+#define	Z_DIR_PIN							DIO13
+#define	Z_MIN_PIN							DIO2
 //#define	Z_MAX_PIN							xxxx
-//#define	Z_ENABLE_PIN					xxxx
+//#define	Z_ENABLE_PIN					DIO17
 //#define	Z_INVERT_DIR
 //#define	Z_INVERT_MIN
 //#define	Z_INVERT_MAX
 //#define	Z_INVERT_ENABLE
 
-#define	E_STEP_PIN						DIO28
-#define	E_DIR_PIN							DIO27
-//#define E_ENABLE_PIN
-//#define	E_INVERT_DIR
+#define	E_STEP_PIN						DIO12
+#define	E_DIR_PIN							DIO11
+//#define E_ENABLE_PIN					xxxx
+#define	E_INVERT_DIR
 //#define	E_INVERT_ENABLE
 
-#define	PS_ON_PIN							DIO15
-#define STEPPER_ENABLE_PIN		DIO24
-#define	STEPPER_INVERT_ENABLE
 
+//#define	PS_ON_PIN							xxxx
+//#define	SD_CARD_DETECT		 		DIO2
+//#define	SD_WRITE_PROTECT			DIO3
 
 
 /***************************************************************************\
@@ -250,7 +330,7 @@
 	TEMP_HYSTERESIS: actual temperature must be target +/- hysteresis before target temperature can be achieved.
 	Unit is degree Celsius.
 */
-#define	TEMP_HYSTERESIS			20
+#define	TEMP_HYSTERESIS				5
 
 /**
 	TEMP_RESIDENCY_TIME: actual temperature must be close to target (within
@@ -292,8 +372,11 @@
 #endif
 
 //                 name       type            pin        additional
-DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
-DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO2,      THERMISTOR_BED)
+DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO0,      THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
+// "noheater" is a special name for a sensor which doesn't have a heater.
+// Use "M105 P#" to read it, where # is a zero-based index into this list.
+// DEFINE_TEMP_SENSOR(noheater,  TT_THERMISTOR,  1,            0)
 
 
 
@@ -335,8 +418,11 @@ DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO2,      THERMISTOR_BED)
 #endif
 
 //            name      port
-DEFINE_HEATER(extruder, DIO4)
-DEFINE_HEATER(bed,      DIO3)
+DEFINE_HEATER(extruder, DIO6)
+DEFINE_HEATER(bed,      DIO4)
+// DEFINE_HEATER(fan,      PINB4)
+// DEFINE_HEATER(chamber,  PIND7)
+// DEFINE_HEATER(motor,    PIND6)
 
 /// and now because the c preprocessor isn't as smart as it could be,
 /// uncomment the ones you've listed above and comment the rest.
@@ -346,6 +432,9 @@ DEFINE_HEATER(bed,      DIO3)
 
 #define	HEATER_EXTRUDER HEATER_extruder
 #define HEATER_BED HEATER_bed
+// #define HEATER_FAN HEATER_fan
+// #define HEATER_CHAMBER HEATER_chamber
+// #define HEATER_MOTOR HEATER_motor
 
 
 
@@ -369,7 +458,7 @@ DEFINE_HEATER(bed,      DIO3)
 /**
 	Baud rate for the connection to the host. Usually 115200, other common values are 19200, 38400 or 57600.
 */
-#define	BAUD	115200
+#define	BAUD	57600
 
 /** \def XONXOFF
 	Xon/Xoff flow control.
@@ -511,5 +600,14 @@ PWM value for 'off'
 * OCR5AL - PL3 - DIO46                                                      *
 * OCR5BL - PL4 - DIO45                                                      *
 * OCR5CL - PL5 - DIO44                                                      *
+*                                                                           *
+* For the Teensy atmega32U, timer pin/mappings are as follows               *
+*                                                                           *
+* Timer 1 is used for stepping, so OC1A and OC1B aren't good PWMs           *
+* OCR0A - PB7 - DIO4                                                        *
+* OCR0B - PD0 - DIO5                                                        *
+* OCR3A - PC6 - DIO9                                                        *
+* OCR4A - PC7 - DIO10                                                       *
+* OCR4D - PD7 - DIO12 - AIO9                                                *
 *                                                                           *
 \***************************************************************************/

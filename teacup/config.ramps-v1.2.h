@@ -246,10 +246,11 @@
 	Unit is degree Celsius.
 */
 #define	TEMP_HYSTERESIS				5
-/**
-TEMP_RESIDENCY_TIME: actual temperature must be close to target for this long before target is achieved
 
-temperature is "achieved" for purposes of M109 and friends when actual temperature is within [hysteresis] of target for [residency] seconds
+/**
+	TEMP_RESIDENCY_TIME: actual temperature must be close to target (within
+	set temperature +- TEMP_HYSTERESIS) for this long before target is achieved
+	(and a M116 succeeds). Unit is seconds.
 */
 #define	TEMP_RESIDENCY_TIME		60
 
@@ -276,6 +277,9 @@ temperature is "achieved" for purposes of M109 and friends when actual temperatu
 * THERMISTOR_EXTRUDER for the first or only table, or THERMISTOR_BED for    *
 * the second table. See also early in ThermistorTable.{single|double}.h.    *
 *                                                                           *
+* TT_INTERCOM and TT_NONE don't use a pin, insert AIO0 anyways to keep      *
+* the compiler happy. The pin won't be used in this case.                   *
+*                                                                           *
 \***************************************************************************/
 
 #ifndef DEFINE_TEMP_SENSOR
@@ -283,8 +287,8 @@ temperature is "achieved" for purposes of M109 and friends when actual temperatu
 #endif
 
 //                 name       type            pin        additional
-DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO2_PIN,  THERMISTOR_EXTRUDER)
-DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1_PIN,  THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(extruder,  TT_THERMISTOR,  AIO2,      THERMISTOR_EXTRUDER)
+DEFINE_TEMP_SENSOR(bed,       TT_THERMISTOR,  AIO1,      THERMISTOR_EXTRUDER)
 
 
 
