@@ -26,13 +26,11 @@ atmega8:
 
 atmega88/168:
     low fuse byte:
-        clock-source external xtal: CHKSEL = 0
-
-        disable system clock divide by 8: CKDIV8 = 1
-
-    -> default: 0b01100010 = 0x62
-       new:     0b11100000 = 0xe0
-
+       1mhz clk     = 0b01100010 = 0x62 (Internal 8mhz clock, div/8, CKSEL = 0010)
+       external clk = 0b11100000 = 0xe0 (External clock, CKSEL = 0000)
+       crystal clk  = 0b11110111 = 0xf7 (Full swing crystal osc, CKSEL = 0111)
+       crystal clk  = 0b11111111 = 0xff (Low power crystal osc, CKSEL = 1111)
+       8mhz clk     = 0b11100010 = 0xe2 (Internal 8mhz clock, CKSEL = 0010)
 
     high fuse byte:
         no eeprom erase on chip erase: EESAVE = 0

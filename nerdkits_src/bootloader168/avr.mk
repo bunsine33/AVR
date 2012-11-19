@@ -1,21 +1,21 @@
 # Programmer used for In System Programming
-ISP_PROG = dapa
+ISP_PROG = avrisp2
 # device the ISP programmer is connected to
-ISP_DEV = /dev/parport0
+ISP_DEV = /dev/ttyUSB0
 # Programmer used for serial programming (using the bootloader)
 SERIAL_PROG = avr109
 # device the serial programmer is connected to
 SERIAL_DEV = /dev/ttyS0
 
 # programs
-CC = avr-gcc
-OBJCOPY = avr-objcopy
-OBJDUMP = avr-objdump
+CC = /usr/local/AVRMacPack/bin/avr-gcc
+OBJCOPY = /usr/local/AVRMacPack/bin/avr-objcopy
+OBJDUMP = /usr/local/AVRMacPack/bin/avr-objdump
 AS = avr-as
 CP = cp
 RM = rm -f
-AVRDUDE = avrdude
-AVRDUDE_BAUDRATE = 115200
+AVRDUDE = /usr/local/AVRMacPack/bin/avrdude
+AVRDUDE_BAUDRATE = 19200
 SIZE = avr-size
 
 -include config.mk

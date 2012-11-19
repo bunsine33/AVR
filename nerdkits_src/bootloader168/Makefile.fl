@@ -62,9 +62,9 @@ CFLAGS += -DBOOT_SECTION_START=$(BOOT_SECTION_START)
 
 OBJECTS += $(patsubst %.c,%.o,$(shell echo *.c))
 HEADERS += $(shell echo *.h)
-CFLAGS += -Werror
-LDFLAGS += -L/usr/local/avr/avr/lib
-
+CFLAGS += -Werror -I/usr/local/AVRMacPack/avr-4
+#LDFLAGS += -L/usr/local/CrossPack-AVR/avr/lib
+LDFLAGS += -L/usr/local/AVRMacPack/avr-4/lib
 
 .PHONY: all launcher
 

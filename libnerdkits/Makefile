@@ -1,4 +1,7 @@
-GCCFLAGS=-g -Os -Wall -mmcu=atmega168 
+#GCC_TARGET = atmega168
+GCC_TARGET = atmega328p
+
+GCCFLAGS=-g -Os -Wall -mmcu=$(GCC_TARGET) 
 
 all: delay.o lcd.o uart.o
 

@@ -1,4 +1,4 @@
-AVRDUDEFLAGS=-c dapa -pm328p
+AVRDUDEFLAGS= -pm328p -b 115200 -P usb -c avrisp2
 
 
 all: fuses install
