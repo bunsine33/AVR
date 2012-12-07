@@ -1,0 +1,25 @@
+#AVR_TARGET = m328p
+AVR_TARGET = m168
+#GCC_TARGET = atmega328p
+GCC_TARGET = atmega168
+
+BAUD_RATE = 115200  
+
+CC=avr-gcc
+OBJCOPY=avr-objcopy
+OBJDUMP=avr-objdump
+
+CFLAGS=-g -Os -Wall -mmcu=$(GCC_TARGET) 
+LDFLAGS=
+AVRDUDEFLAGS=-c avr109 -p $(AVR_TARGET) -b $(BAUD_RATE) -P /dev/cu.PL2303-0000101D 
+
+OBJS=
+
+all:	vga 
+
+vga.hex:	vga.S ${OBJS}
+	avr-gcc -mmcu=$(GCC_TARGET) -o vga.o vga.S
+	$(OBJCOPY) -O ihex vga.o vga.hex
+
+vga:	vga.hex	
+	avrdude ${AVRDUDEFLAGS} -U flash:w:vga.hex:a
